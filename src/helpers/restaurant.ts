@@ -1,72 +1,130 @@
-import MongoDbService from '../mongodbService';
-import * as _ from 'lodash';
-import { IRestaurantAggregatedData, IRestaurantEsDoc } from 'types/restaurant';
-import {  IEsDoc } from '../types/esDoc';
-import { ES_INDEXES, ES_TYPES } from '../utils/constants';
-import ElasticSearch from '../elasticSearch';
+import MongoDbService from '../services/mongodbService';
+import _ from 'lodash';
+import { IRestaurantESDoc } from '../types/restaurant';
+import { DB_CLASSES, ES_INDEXES, ES_TYPES } from '../utils/constants';
+import ElasticSearch from '../services/elasticSearchService';
+import { Client } from '@elastic/elasticsearch';
+import Logger from '../logger';
+import { ESSyncStat } from 'types/esSyncStats';
+import { MongoClient } from 'mongodb';
 
 
-export async function uploadAllRestaurantsToES(){
-  const esClient  = ElasticSearch.getInstance().getClient();
-  const restaurants:IRestaurantAggregatedData[] = await getAllRestaurants();
-  const sanitizedRestaurants :IRestaurantEsDoc[] = getSanitizedRestaurantsForEs(restaurants);
-  try{
-    await esClient.indices.create({ index : ES_INDEXES.RESTAURANT });
-    //TODO: create schema too
-  }catch(e){
-    // TODO: log here
-  }
-  // TODO; error handling remains
-  const erroredDocs:any[] = [];
-  for(const sanitizedRestaurant of sanitizedRestaurants){
-    const id = sanitizedRestaurant.restaurantId;
-    delete sanitizedRestaurant.restaurantId;
-    const esRestaurantDoc:IEsDoc<IRestaurantEsDoc> = {
-      index : ES_INDEXES.RESTAURANT,
-      type: ES_TYPES.DOC,
-      id,
-      body:sanitizedRestaurant,
-    }; 
-    try{
-      await esClient.create(esRestaurantDoc);
-    }catch(e){
-      // TODO: log here
-      erroredDocs.push(sanitizedRestaurant);
+export async function uploadAllRestaurantsToES() : Promise<string>{
+  handleRestaurantUpload();
+  return 'Restaurant upload started.';
+}
+
+async function handleRestaurantUpload(){
+  const logger = Logger.getInstance().getLogger();
+  let pageNo = 0;
+  const pageSize = 50;
+  let totalDocsFetched = 0;
+  while(true){
+    const restaurants:IRestaurantESDoc[] = await getAllRestaurants(pageNo,pageSize);
+    const result = await bulkUpsertToES(restaurants);
+    logger.info(`Page No : ${pageNo}, ${result}`);
+    totalDocsFetched += restaurants.length;
+    if(restaurants.length < pageSize){
+      break;
     }
+    pageNo++;
   }
-  const { body:count } = await esClient.count({ index : ES_INDEXES.RESTAURANT });
-  return count;
+  logger.info(`Total ${totalDocsFetched} uploaded.`);
 }
 
-async function getAllRestaurants() : Promise<IRestaurantAggregatedData[]>{
-  const mongoDbClient = MongoDbService.getInstance().getClient();
-  const results = await mongoDbClient.db(_.get(mongoDbClient, 's.options.dbName')).collection('Restaurant')
-    .aggregate([{
-      $project : {
-        _id : 0,
-        restaurantId : '$_id',
-        restaurantName : '$restaurant_name',
-        restaurantName2:'$name',
-        restaurantContactEmail : '$contact_email',
-        restaurantPhone:'$contact_phone',
-        restaurantAddress :'$contact_address',
-      },
-    }]).toArray();
-  return results;
+async function getAllRestaurants(pageNo:number,pageSize:number,lastSyncStartTime ?: Date|null) : Promise<IRestaurantESDoc[]>{
+  const mongoDbClient:MongoClient = MongoDbService.getInstance().getClient();
+  const esRestaurantDocs:IRestaurantESDoc[] = [];
+  let query = {};
+  if(lastSyncStartTime){
+    query = { '_updated_at': { $gt: lastSyncStartTime }};
+  }
+  const results = await mongoDbClient
+    .db(_.get(mongoDbClient, 's.options.dbName'))
+    .collection(DB_CLASSES.RESTAURANT)
+    .find(query)
+    .skip(pageSize * pageNo)
+    .limit(pageSize)
+    .toArray();
+  esRestaurantDocs.push(...getSanitizedRestaurants(results));
+  return esRestaurantDocs;
 }
 
-function getSanitizedRestaurantsForEs(restaurants : IRestaurantAggregatedData[]) : IRestaurantEsDoc[]{
-  const esRestaurantDocs:IRestaurantEsDoc[]=[];
+function getSanitizedRestaurants(restaurants : unknown[]) : IRestaurantESDoc[]{
+  const esRestaurantDocs:IRestaurantESDoc[]=[];
   for(const restaurant of restaurants){
+    const restaurant_name = _.get(restaurant,'restaurant_name') ||  _.get(restaurant,'name','');
     esRestaurantDocs.push(
       {
-        address : restaurant.restaurantAddress,
-        email: restaurant.restaurantContactEmail,
-        name:restaurant.restaurantName || restaurant.restaurantName2,
-        phone: restaurant.restaurantPhone,
-        restaurantId : restaurant.restaurantId,
+        contact_address: _.get(restaurant,'contact_address',''),
+        image: _.get(restaurant,'image',''),
+        objectId: _.get(restaurant,'_id'),
+        restaurant_about_us: _.get(restaurant,'restaurant_about_us'),
+        restaurant_logo: _.get(restaurant,'restaurant_logo',''),
+        restaurant_name,
+        type: _.get(restaurant,'type',''),
+        tags: _.get(restaurant,'tags',[]).join(''),
       },
     );
   }
   return esRestaurantDocs;
+}
+
+async function bulkUpsertToES(esRestaurantDocs:IRestaurantESDoc[]):Promise<string>{
+  if(!esRestaurantDocs.length){
+    return 'Empty Restaurant Docs. Can\'t  move forward';
+  }
+  const esClient:Client  = ElasticSearch.getInstance().getClient();
+  const rests = _.flatMap(esRestaurantDocs,(value,index)=>{
+    return [{ index: { _index: ES_INDEXES.RESTAURANT, _id: value.objectId, _type: ES_TYPES.DOC }},value];
+  });
+  try{
+    const result = await esClient.bulk({ refresh: true, body: rests });
+    return result.statusCode === 200 ? `Successfully uploaded ${esRestaurantDocs.length} items in bulk` : 'Some error occurred.';
+  }catch(e){
+    return `Some error occurred. ${e}`;
+  }
+}
+
+export async function updateESSyncStat(data:ESSyncStat): Promise<boolean>{
+  const mongoDbClient:MongoClient = MongoDbService.getInstance().getClient();
+  const indexType = data.indexType;
+  const syncStats = data.syncStats;
+  const result = await mongoDbClient
+    .db(_.get(mongoDbClient, 's.options.dbName'))
+    .collection(DB_CLASSES.ES_SYNC_STAT)
+    .findOneAndUpdate({ indexType },{ $set: { syncStats }},{ upsert: true });
+  return result.ok === 1;
+}
+
+export async function getESSyncStat(): Promise<any>{
+  const mongoDbClient:MongoClient = MongoDbService.getInstance().getClient();
+  const result = await mongoDbClient
+    .db(_.get(mongoDbClient, 's.options.dbName'))
+    .collection(DB_CLASSES.ES_SYNC_STAT)
+    .findOne({ indexType: ES_INDEXES.RESTAURANT });
+  return result;
+}
+
+export async function handleRestaurantUploadFromJob(lastSyncStartTime: Date|null): Promise<{error: string;totalRestaurants: number;}>{
+  const logger = Logger.getInstance().getLogger();
+  let pageNo = 0;
+  const pageSize = 50;
+  let totalDocsFetched = 0;
+  const error = '';
+  while(true){
+    const restaurants:IRestaurantESDoc[] = await getAllRestaurants(pageNo,pageSize,lastSyncStartTime);
+    const result = await bulkUpsertToES(restaurants);
+    logger.info(`Page No : ${pageNo}, ${result}`);
+    totalDocsFetched += restaurants.length;
+    if(restaurants.length < pageSize){
+      break;
+    }
+    pageNo++;
+  }
+  logger.info(`Total ${totalDocsFetched} uploaded.`);
+  return {
+    error,
+    totalRestaurants: totalDocsFetched,
+  };
 }

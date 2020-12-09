@@ -1,6 +1,6 @@
-export interface IEsDoc<T> {
+export interface IESDoc<T> {
 	'index': string;
 	'type': string;
 	'id': string;
-	'body' : T
+	'body': T;
 }

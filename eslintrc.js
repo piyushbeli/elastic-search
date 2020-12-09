@@ -32,7 +32,7 @@ module.exports = {
     "quotes": [
       "error",
       "single",
-      {allowTemplateLiterals: true},
+      { allowTemplateLiterals: true },
     ],
     "indent": [
       "error",
@@ -50,7 +50,7 @@ module.exports = {
     "object-curly-spacing": ["error", "always", { "objectsInObjects": false }],
     "only-arrow-functions": 0,
     "@typescript-eslint/explicit-function-return-type": 0,
-    "@typescript-eslint/no-explicit-any": 0,
+    "@typescript-eslint/no-explicit-any": 1,
     "@typescript-eslint/interface-name-prefix": 0,
     "@typescript-eslint/no-namespace": 0,
     "@typescript-eslint/no-use-before-define": 0,
@@ -59,6 +59,7 @@ module.exports = {
     "@typescript-eslint/no-unused-expressions": ["off"],
     "react/prop-types": 0,
     "no-unused-vars": 0,
-    "semi": [2, "always", { "omitLastInOneLineBlock": true}]
+    "semi": [2, "always", { "omitLastInOneLineBlock": true }],
+    "key-spacing": [2, { "beforeColon": false, "afterColon": true }],
   },
 };

@@ -1,11 +1,9 @@
 import { MongoClient as mongodb } from 'mongodb';
-import Logger from './logger';
+import Logger from '../logger';
 
 export default class MongoDbService {
   private static instance: MongoDbService = new MongoDbService();
-  // @ts-ignore
-  private mongoDbClient:mongodb;
-  private initialized = false;
+  private mongoDbClient?:mongodb;
   private logger: any;
 
   constructor() {
@@ -18,7 +16,7 @@ export default class MongoDbService {
     return MongoDbService.instance;
   }
 
-  public async init() {
+  public async init():Promise<void> {
     const url = process.env.DATABASE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/uva_prod';
     this.logger = Logger.getInstance().getLogger();
     try{
