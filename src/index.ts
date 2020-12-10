@@ -5,17 +5,16 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 import http from 'http';
 import express from 'express';
 import Logger from './logger';
+import ElasticSearch from './services/elasticSearchService';
+import MongoDbService from './services/mongodbService';
+import setupJobs from './setupJobs';
+import SetupAPI from './setupAPI';
+
 const app = express();
 
 const PORT = process.env.PORT || '3000';
 app.set('port', PORT);
 const logger = Logger.getInstance().init(app);
-
-import setupAPI from './setupAPI';
-import ElasticSearch from './services/elasticSearchService';
-import MongoDbService from './services/mongodbService';
-import CacheService from './services/cacheService';
-import setupJobs from './setupJobs';
 
 (async () => {
   // Initialize all the external services first and then start the server and mount the middleware and routes
@@ -23,7 +22,6 @@ import setupJobs from './setupJobs';
   await Promise.all([
     MongoDbService.getInstance().init(), 
     ElasticSearch.getInstance().init(),
-    CacheService.getInstance().init(),
   ]);
   logger.info('Services initialzation completed.');
 
@@ -40,7 +38,7 @@ import setupJobs from './setupJobs';
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
     app.use(express.static(path.join(__dirname, 'public')));
-    setupAPI(app);
+    new SetupAPI().setupAPI(app);
     setupJobs();
   });
 })();

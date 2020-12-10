@@ -1,36 +1,38 @@
 import { MongoClient as mongodb } from 'mongodb';
 import Logger from '../logger';
+import { ILoggerTypes } from 'types/logger';
 
 export default class MongoDbService {
   private static instance: MongoDbService = new MongoDbService();
   private mongoDbClient?:mongodb;
-  private logger: any;
+  private logger?: ILoggerTypes;
 
   constructor() {
-    if (MongoDbService.instance) {
-      throw new Error('Use getInstance() method instead of constructor to create the instance of MongoDbService');
-    }
+      if (MongoDbService.instance) {
+          throw new Error('Use getInstance() method instead of constructor to create the instance of MongoDbService');
+      }
   }
 
   public static getInstance(): MongoDbService {
-    return MongoDbService.instance;
+      return MongoDbService.instance;
   }
 
   public async init():Promise<void> {
-    const url = process.env.DATABASE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/uva_prod';
-    this.logger = Logger.getInstance().getLogger();
-    try{
-      this.mongoDbClient = await mongodb.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
-      this.logger.info('MongoDbService:: MongoDb connected successfully');
-    }catch(e){
-      this.logger.error(`MongoDbService:: MongoDb connected was unsuccessfully. ${e}`);
-    }
+      this.logger = Logger.getInstance().getLogger();
+      const url = process.env.DATABASE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/uva_prod';
+      try {
+          this.mongoDbClient = await mongodb.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+          this.logger!.info('MongoDbService:: MongoDb connected successfully');
+      } catch (e){
+          this.logger!.error(`MongoDbService:: MongoDb connected was unsuccessfully. ${e}`);
+      }
   }
 
-  public getClient() {
-    if (!this.mongoDbClient) {
-      throw new Error('Mongo DB client has not been initialized yet');
-    }
-    return this.mongoDbClient;
+  public getClient():mongodb {
+      if (!this.mongoDbClient) {
+          throw new Error('Mongo DB client has not been initialized yet');
+      }
+      return this.mongoDbClient;
   }
+
 }

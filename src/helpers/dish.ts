@@ -1,3 +1,3 @@
-export function uploadDishesToElasticSearch(){
-  // to be implemented
+export function uploadDishesToElasticSearch():void{
+    // to be implemented
 }

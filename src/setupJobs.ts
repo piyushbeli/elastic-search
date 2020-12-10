@@ -1,5 +1,5 @@
-import { setup as setupOrderDataCaching } from './jobs/uploadRestaurants';
+import RestaurantUploadJob from './jobs/uploadRestaurants';
 
 export default async function setupJobs():Promise<void> {
-  setupOrderDataCaching();
+  new RestaurantUploadJob().setup();
 }
