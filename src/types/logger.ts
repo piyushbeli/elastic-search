@@ -1,9 +1,9 @@
 export interface ILoggerTypes {
-	log: (message:string) => void;
-	error: (message:string) => void;
-	warn: (message:string) => void;
-	verbose: (message:string) => void;
-	info: (message:string) => void;
-	debug: (message:string) => void;
-	silly: (message:string) => void;
+	log: (message, options?) => void;
+	error: (message, options?) => void;
+	warn: (message, options?) => void;
+	verbose: (message, options?) => void;
+	info: (message, options?) => void;
+	debug: (message, options?) => void;
+	silly: (message, options?) => void;
 }

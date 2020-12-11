@@ -4,8 +4,8 @@ import _ from 'lodash';
 import moment from 'moment';
 import { DEFAULT_TIME_ZONE, ES_INDEXES } from '../utils/constants';
 import { ESSyncStat } from '../types/esSyncStats';
-import RestaurantHelper  from '../helpers/restaurant';
-import DbHelper from '../helpers/db';
+import * as RestaurantHelper  from '../helpers/restaurant';
+import * as DbHelper from '../helpers/db';
 import { ILoggerTypes } from 'types/logger';
 
 const JOB_NAME = 'uploadRestaurants';
@@ -13,13 +13,9 @@ const JOB_NAME = 'uploadRestaurants';
 export default class RestaurantUploadJob {
 
   private logger: ILoggerTypes;
-  private restaurantHelper: RestaurantHelper;
-  private dbHelper: DbHelper;
 
   constructor() {
       this.logger = Logger.getInstance().getLogger();
-      this.restaurantHelper = new RestaurantHelper();
-      this.dbHelper = new DbHelper();
   }
 
   private async start():Promise<void> {
@@ -31,10 +27,10 @@ export default class RestaurantUploadJob {
       this.logger.info(`${JOB_NAME}: Staring cron job`);
       try {
           const syncStartTime = moment().toDate();
-          const esSyncStats = await this.dbHelper.getESSyncStat(ES_INDEXES.RESTAURANT);
+          const esSyncStats = await DbHelper.getESSyncStat(ES_INDEXES.RESTAURANT);
           const lastSyncStartTime:Date|null = this.getLastSyncStartTime(esSyncStats);
           const query = lastSyncStartTime ? { '_updated_at': { $gte: lastSyncStartTime }} : {};
-          const result = await this.restaurantHelper.handleRestaurantUpload(query);
+          const result = await RestaurantHelper.handleRestaurantUpload(query);
           const syncEndTime = moment().toDate();
           const esSyncStatForRestaurant: ESSyncStat = {
               indexType: ES_INDEXES.RESTAURANT,
@@ -44,7 +40,7 @@ export default class RestaurantUploadJob {
                   lastSyncStartTime: syncStartTime,
               },
           };
-          const updateESSyncStatResult = await this.dbHelper.updateESSyncStat(esSyncStatForRestaurant);
+          const updateESSyncStatResult = await DbHelper.updateESSyncStat(esSyncStatForRestaurant);
           if (updateESSyncStatResult) {
               this.logger.info(`${JOB_NAME}: Updated ES Stats For Restaurants.`);
           } else {

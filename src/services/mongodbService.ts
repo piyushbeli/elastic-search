@@ -1,38 +1,20 @@
-import { MongoClient as mongodb } from 'mongodb';
+import { MongoClient, MongoClient as mongodb } from 'mongodb';
 import Logger from '../logger';
-import { ILoggerTypes } from 'types/logger';
+import { ILoggerTypes } from '../types/logger';
+let mongoDbClient: MongoClient;
+const logger: ILoggerTypes = Logger.getInstance().getLogger();
 
-export default class MongoDbService {
-  private static instance: MongoDbService = new MongoDbService();
-  private mongoDbClient?:mongodb;
-  private logger?: ILoggerTypes;
-
-  constructor() {
-      if (MongoDbService.instance) {
-          throw new Error('Use getInstance() method instead of constructor to create the instance of MongoDbService');
-      }
-  }
-
-  public static getInstance(): MongoDbService {
-      return MongoDbService.instance;
-  }
-
-  public async init():Promise<void> {
-      this.logger = Logger.getInstance().getLogger();
-      const url = process.env.DATABASE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/uva_prod';
-      try {
-          this.mongoDbClient = await mongodb.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
-          this.logger!.info('MongoDbService:: MongoDb connected successfully');
-      } catch (e) {
-          this.logger!.error(`MongoDbService:: MongoDb connected was unsuccessfully. ${e}`);
-      }
-  }
-
-  public getClient():mongodb {
-      if (!this.mongoDbClient) {
-          throw new Error('Mongo DB client has not been initialized yet');
-      }
-      return this.mongoDbClient;
-  }
-
-}
+export const initMongoDBClient = async (): Promise<MongoClient> => {
+    const url = process.env.DATABASE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/uva_prod';
+    try {
+        mongoDbClient = await mongodb.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+        logger.info('MongoDbService:: MongoDb connected successfully');
+        return mongoDbClient;
+    } catch (e) {
+        logger.error(`MongoDbService:: MongoDb connected was unsuccessfully. ${e}`);
+        throw e;
+    }
+};
+// TODO: throw error here if client is undefined
+const getMongoDbClient = ():MongoClient => mongoDbClient;
+export default getMongoDbClient;
