@@ -1,4 +1,5 @@
 /*eslint quotes: [2, "double"]*/
+// eslint-disable-next-line no-undef
 module.exports = {
     parser: "@typescript-eslint/parser", // Specifies the ESLint parser
     parserOptions: {
@@ -12,6 +13,7 @@ module.exports = {
         "eslint-plugin-typescript",
     ],
     extends: [
+        "eslint:recommended",
         "plugin:@typescript-eslint/recommended", // Uses the recommended rules from the @typescript-eslint/eslint-plugin
     ],
     rules: {
@@ -30,6 +32,7 @@ module.exports = {
         "indent": [
             "error",
             4,
+	        { "VariableDeclarator": 1 },
         ],
         "comma-dangle": [
             "error",
@@ -42,7 +45,7 @@ module.exports = {
         ],
         "object-curly-spacing": ["error", "always", { "objectsInObjects": false }],
         "only-arrow-functions": 0,
-	    "keyword-spacing": ["error", { "before": true, "after": true }],
+        "keyword-spacing": ["error", { "before": true, "after": true }],
         "@typescript-eslint/explicit-function-return-type": 0,
         "@typescript-eslint/no-explicit-any": 1,
         "@typescript-eslint/interface-name-prefix": 0,
@@ -51,9 +54,17 @@ module.exports = {
         "@typescript-eslint/ban-ts-ignore": 0,
         "no-unused-expressions": "off",
         "@typescript-eslint/no-unused-expressions": ["off"],
+	    "@typescript-eslint/no-non-null-assertion": ["off"],
         "react/prop-types": 0,
         "no-unused-vars": 0,
         "semi": [2, "always", { "omitLastInOneLineBlock": true }],
         "key-spacing": [2, { "beforeColon": false, "afterColon": true }],
+        "comma-spacing": ["error", { "before": false, "after": true }],
+        "prefer-object-spread": "error",
+        "semi-spacing": ["error", { "before": false, "after": true }],
+        "space-before-blocks": "error",
+        "no-duplicate-imports": "error",
+        "no-irregular-whitespace": "error",
+	    "no-mixed-spaces-and-tabs": "off",
     },
 };
