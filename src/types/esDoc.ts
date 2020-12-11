@@ -4,3 +4,8 @@ export interface IESDoc<T> {
 	'id': string;
 	'body': T;
 }
+
+export interface ESMapProperty {
+	type: string;
+	index?: boolean;
+}

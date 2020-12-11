@@ -3,6 +3,7 @@ import Logger from '../logger';
 import { ES_INDEXES } from '../utils/constants';
 import { ILoggerTypes } from 'types/logger';
 import _ from 'lodash';
+import { getRestaurantIndexMappings } from '../utils/utils';
 
 export default class ElasticSearch {
     private client?:Client;
@@ -40,10 +41,10 @@ export default class ElasticSearch {
             if (pingResult.statusCode !== 200){
                 throw `Cannot connect to Elastic Search server. ${JSON.stringify(pingResult.body)}`;
             } else {
-                this.logger!.info('Elastic Search server connection established successfully.');
+                this.logger?.info('Elastic Search server connection established successfully.');
             }
         } catch (e){
-            this.logger!.error(`${JSON.stringify(e)}`);
+            this.logger?.error(`${JSON.stringify(e)}`);
             throw e;
         }
     }
@@ -58,11 +59,24 @@ export default class ElasticSearch {
         const logger = this.logger;
         _.forOwn(ES_INDEXES,async function (value,key){
             try {
-                const result= await esClient.indices.exists({ index: ES_INDEXES[key] });
+                const result= await esClient.indices.exists({ index: value });
                 if (!result.body){
-                    const indexCreateResult = await esClient.indices.create({ index: ES_INDEXES.RESTAURANT });
-                    if (indexCreateResult.body){
-                        logger!.info(`Index created for ${key}`);
+                    const indexCreateResult = await esClient.indices.create({ index: value });
+                    if (indexCreateResult.statusCode === 200){
+                        logger?.info(`Index created for ${key}`);
+                    } else {
+                        logger?.error(`Error occurred while creating Index for ${key}, ${JSON.stringify(indexCreateResult.body)} `);
+                    }
+                    const mappingCreateResult = await esClient.indices.putMapping({
+                        index: value,
+                        body: {
+                            properties: getRestaurantIndexMappings(),
+                        },
+                    });
+                    if (mappingCreateResult.statusCode === 200){
+                        logger?.info(`Mappings created for ${key}`);
+                    } else {
+                        logger?.error(`Error occurred while created mappings for ${key}. ${JSON.stringify(mappingCreateResult.body)}`);
                     }
                 }
             } catch (e){

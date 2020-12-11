@@ -66,7 +66,7 @@ export default class RestaurantUploadJob{
       this.logger.info(
           `${JOB_NAME}: Job is scheduled at: ${jobTime}. Current time is: ${moment().toLocaleString()}`,
       );
-      const job = new CronJob(jobTime, this.start, null, true, DEFAULT_TIME_ZONE);
+      const job = new CronJob(jobTime, this.start.bind(this), null, true, DEFAULT_TIME_ZONE);
       job.start();
   }
 }
