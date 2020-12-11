@@ -8,13 +8,16 @@ import { Request } from 'express';
 import moment from 'moment';
 
 
+const logger = Logger.getInstance().getLogger();
+
+
 export default class RestaurantHelper {
   private dbHelper:DbHelper;
   private logger : ILoggerTypes;
   private esHelper: ESHelper;
 
   constructor(){
-      this.dbHelper = new DbHelper();
+      this.dbHelper= new DbHelper();
       this.logger = Logger.getInstance().getLogger();
       this.esHelper = new ESHelper();
   }
