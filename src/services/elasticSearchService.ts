@@ -63,7 +63,7 @@ export default class ElasticSearch {
                     const indexCreateResult = await esClient.indices.create({ index: ES_INDEXES.RESTAURANT });
                     if (indexCreateResult.body) {
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        logger.info(`Index created for ${key}`);
+                        logger!.info(`Index created for ${key}`);
                     }
                 }
             } catch (e) {

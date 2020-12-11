@@ -18,7 +18,7 @@ const logger = Logger.getInstance().init(app);
 
 (async () => {
     // Initialize all the external services first and then start the server and mount the middleware and routes
-    logger.info('Start initializing services.');
+    logger.info('Start initializing services');
     await Promise.all([
         initMongoDBClient(),
         ElasticSearch.getInstance().init(),

@@ -19,9 +19,6 @@ export default class Logger {
     }
 
     public getLogger():ILoggerTypes {
-        if (!this.logger) {
-            throw new Error('Logger has not been initialized yet');
-        }
         return this.logger;
     }
 }
