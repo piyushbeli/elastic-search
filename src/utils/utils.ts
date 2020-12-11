@@ -13,7 +13,7 @@ export function generateObjectId():string {
     return objectId;
 }
 //TODO: make this method generic so that you can supply mappings based on indexes
-export function getRestaurantIndexMappings():{[key in keyof IRestaurantESDoc] : ESMapProperty}{
+export function getRestaurantIndexMappings():{[key in keyof IRestaurantESDoc] : ESMapProperty} {
     const restaurantMappings:{[key in keyof IRestaurantESDoc] : ESMapProperty}  = {
         restaurant_name: {
             type: 'text',

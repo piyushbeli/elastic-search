@@ -23,7 +23,7 @@ export default class MongoDbService {
       try {
           this.mongoDbClient = await mongodb.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
           this.logger!.info('MongoDbService:: MongoDb connected successfully');
-      } catch (e){
+      } catch (e) {
           this.logger!.error(`MongoDbService:: MongoDb connected was unsuccessfully. ${e}`);
       }
   }

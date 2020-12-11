@@ -14,7 +14,7 @@ export default class ElasticSearch {
         return this.instance;
     }
     
-    public async init():Promise<Client>{
+    public async init():Promise<Client> {
         this.logger = Logger.getInstance().getLogger();
         if (!this.client) {
             const nodeUrl = process.env.ELASTIC_SEARCH_URL || 'http://localhost:9200';
@@ -32,37 +32,37 @@ export default class ElasticSearch {
         return this.client;
     }
 
-    private async checkConnection():Promise<void>{
-        if (!this.client){
+    private async checkConnection():Promise<void> {
+        if (!this.client) {
             throw new Error('Elastic search client has not been initialized yet');
         }
         try {
             const pingResult = await this.client.ping();
-            if (pingResult.statusCode !== 200){
+            if (pingResult.statusCode !== 200) {
                 throw `Cannot connect to Elastic Search server. ${JSON.stringify(pingResult.body)}`;
             } else {
                 this.logger?.info('Elastic Search server connection established successfully.');
             }
-        } catch (e){
+        } catch (e) {
             this.logger?.error(`${JSON.stringify(e)}`);
             throw e;
         }
     }
 
-    private async createIndicesAndMappings() : Promise<void>{
-        if (!this.client){
+    private async createIndicesAndMappings() : Promise<void> {
+        if (!this.client) {
             throw new Error('Elastic search client has not been initialized yet');
         }
         // unable to access 'this' inside an inner function
         // either we can bind it or we use closure to send 'this'
         const esClient = this.client;
         const logger = this.logger;
-        _.forOwn(ES_INDEXES,async function (value,key){
+        _.forOwn(ES_INDEXES, async function (value, key) {
             try {
                 const result= await esClient.indices.exists({ index: value });
-                if (!result.body){
+                if (!result.body) {
                     const indexCreateResult = await esClient.indices.create({ index: value });
-                    if (indexCreateResult.statusCode === 200){
+                    if (indexCreateResult.statusCode === 200) {
                         logger?.info(`Index created for ${key}`);
                     } else {
                         logger?.error(`Error occurred while creating Index for ${key}, ${JSON.stringify(indexCreateResult.body)} `);
@@ -73,13 +73,14 @@ export default class ElasticSearch {
                             properties: getRestaurantIndexMappings(),
                         },
                     });
-                    if (mappingCreateResult.statusCode === 200){
+                    if (mappingCreateResult.statusCode === 200) {
                         logger?.info(`Mappings created for ${key}`);
                     } else {
                         logger?.error(`Error occurred while created mappings for ${key}. ${JSON.stringify(mappingCreateResult.body)}`);
                     }
                 }
-            } catch (e){
+            } catch (e) {
+                logger?.error(`An error occurred while creating index and mapping for ${key}`);
                 throw e;
             }
         });

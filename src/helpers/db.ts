@@ -7,7 +7,7 @@ import { ESSyncStat } from '../types/esSyncStats';
 export default class DbHelper {
 	private mongoDbClient:MongoClient;
 
-	constructor(){
+	constructor() {
 	    this.mongoDbClient = MongoDbService.getInstance().getClient();
 	}
 	// eslint-disable-next-line
@@ -22,13 +22,13 @@ export default class DbHelper {
 	    return results;
 	}
 
-	public async updateESSyncStat(data:ESSyncStat): Promise<boolean>{
+	public async updateESSyncStat(data:ESSyncStat): Promise<boolean> {
 	    const indexType = data.indexType;
 	    const syncStats = data.syncStats;
 	    const result = await this.mongoDbClient
 		  .db(_.get(this.mongoDbClient, 's.options.dbName'))
 		  .collection(DB_CLASSES.ES_SYNC_STAT)
-		  .findOneAndUpdate({ indexType },{ $set: { syncStats }},{ upsert: true });
+		  .findOneAndUpdate({ indexType }, { $set: { syncStats }}, { upsert: true });
 	    return result.ok === 1;
 	}
 

@@ -10,13 +10,13 @@ import { ILoggerTypes } from 'types/logger';
 
 const JOB_NAME = 'uploadRestaurants';
 
-export default class RestaurantUploadJob{
+export default class RestaurantUploadJob {
 
   private logger: ILoggerTypes;
   private restaurantHelper: RestaurantHelper;
   private dbHelper: DbHelper;
 
-  constructor(){
+  constructor() {
       this.logger = Logger.getInstance().getLogger();
       this.restaurantHelper = new RestaurantHelper();
       this.dbHelper = new DbHelper();
@@ -45,7 +45,7 @@ export default class RestaurantUploadJob{
               },
           };
           const updateESSyncStatResult = await this.dbHelper.updateESSyncStat(esSyncStatForRestaurant);
-          if (updateESSyncStatResult){
+          if (updateESSyncStatResult) {
               this.logger.info(`${JOB_NAME}: Updated ES Stats For Restaurants.`);
           } else {
               throw `${JOB_NAME}: Error occurred while Updating ES Stats For Restaurants.`;
@@ -57,7 +57,7 @@ export default class RestaurantUploadJob{
   }
 
   private getLastSyncStartTime(esSyncStats:ESSyncStat):Date|null{
-      const lastSyncStartTime = _.get(esSyncStats,'syncStats.lastSyncStartTime',null);
+      const lastSyncStartTime = _.get(esSyncStats, 'syncStats.lastSyncStartTime', null);
       return lastSyncStartTime;
   }
 
