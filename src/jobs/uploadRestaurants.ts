@@ -48,17 +48,16 @@ export default class RestaurantUploadJob {
           }
           this.logger.info(`${JOB_NAME}: Uploaded Restaurants to ES.`);
       } catch (e) {
-          this.logger.error(`${JOB_NAME} : Error occured in ${JOB_NAME} ${e}`);
+          this.logger.error(`${JOB_NAME} : Error occurred in ${JOB_NAME} ${e}`);
       }
   }
 
-  private getLastSyncStartTime(esSyncStats:ESSyncStat):Date|null{
-      const lastSyncStartTime = _.get(esSyncStats, 'syncStats.lastSyncStartTime', null);
-      return lastSyncStartTime;
+  private getLastSyncStartTime(esSyncStats:ESSyncStat):Date|null {
+      return _.get(esSyncStats, 'syncStats.lastSyncStartTime', null);
   }
 
   public async setup():Promise<void> {
-      const jobTime = '0 11 * * * * ';
+      const jobTime = '0 */1 * * * * ';
       this.logger.info(
           `${JOB_NAME}: Job is scheduled at: ${jobTime}. Current time is: ${moment().toLocaleString()}`,
       );

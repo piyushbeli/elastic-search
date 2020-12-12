@@ -27,7 +27,7 @@ export const uploadAllRestaurantsToES = async(req:Request) : Promise<string> => 
     return 'Restaurant upload started.';
 };
 
-export const handleRestaurantUpload = async (query): Promise<{error: string;totalRestaurants: number;}> => {
+export const handleRestaurantUpload = async (query): Promise<{error: string; totalRestaurants: number;}> => {
     let pageNo = 0;
     const pageSize = 50;
     let totalDocsFetched = 0;
@@ -35,7 +35,7 @@ export const handleRestaurantUpload = async (query): Promise<{error: string;tota
     //eslint-disable-next-line
     while (true) {
         const esRestaurantDocs:IRestaurantESDoc[] = [];
-        const results:IRestaurantESDoc[] = await DbHelper.getRestaurants(pageNo, pageSize, query);
+        const results: IRestaurantESDoc[] = await DbHelper.getRestaurants(pageNo, pageSize, query);
         esRestaurantDocs.push(...getSanitizedRestaurants(results));
         const result = await ESHelper.bulkUpsertRestaurantsToES(esRestaurantDocs);
         if (result.type === 'error') {

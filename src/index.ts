@@ -22,10 +22,10 @@ import setupAPI from './setupAPI';
     // Initialize all the external services first and then start the server and mount the middleware and routes
     logger.info('Start initializing services.');
     await Promise.all([
-        initMongoDBClient(), 
+        initMongoDBClient(),
         initElasticSearchClient(),
     ]);
-    logger.info('Services initialzation completed.');
+    logger.info('Services initialization completed.');
 
     const server = http.createServer(app);
     server.listen(PORT);

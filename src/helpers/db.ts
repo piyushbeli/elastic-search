@@ -23,7 +23,7 @@ export const  updateESSyncStat = async (data:ESSyncStat): Promise<boolean> => {
         .db(_.get(client, 's.options.dbName'))
         .collection(DB_CLASSES.ES_SYNC_STAT)
         .findOneAndUpdate({ indexType }, { $set: { syncStats }}, { upsert: true });
-    return result?.ok === 1;
+    return result.ok === 1;
 };
 
 export const getESSyncStat = async (indexType : string): Promise<any> =>{
