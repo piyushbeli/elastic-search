@@ -32,7 +32,6 @@ export const handleRestaurantUpload = async (query): Promise<{error: string; tot
     const pageSize = 50;
     let totalDocsFetched = 0;
     let error = '';
-    //eslint-disable-next-line
     while (true) {
         const esRestaurantDocs:IRestaurantESDoc[] = [];
         const results: IRestaurantESDoc[] = await DbHelper.getRestaurants(pageNo, pageSize, query);
@@ -56,23 +55,18 @@ export const handleRestaurantUpload = async (query): Promise<{error: string; tot
 };
 
 const getSanitizedRestaurants = (restaurants : unknown[]) : IRestaurantESDoc[] => {
-    const esRestaurantDocs:IRestaurantESDoc[]=[];
-    for (const restaurant of restaurants) {
-        const restaurant_name = _.get(restaurant, 'restaurant_name') ||  _.get(restaurant, 'name', '');
-        esRestaurantDocs.push(
-            {
-                contact_address: _.get(restaurant, 'contact_address', ''),
-                image: _.get(restaurant, 'image', ''),
-                objectId: _.get(restaurant, '_id'),
-                restaurant_about_us: _.get(restaurant, 'restaurant_about_us'),
-                restaurant_logo: _.get(restaurant, 'restaurant_logo', ''),
-                restaurant_name,
-                type: _.get(restaurant, 'type', ''),
-                tags: _.get(restaurant, 'tags', []).join(''),
-            },
-        );
-    }
-    return esRestaurantDocs;
+    return restaurants.map((restaurant) => {
+        return {
+            contact_address: _.get(restaurant, 'contact_address', ''),
+            image: _.get(restaurant, 'image', ''),
+            objectId: _.get(restaurant, '_id'),
+            restaurant_about_us: _.get(restaurant, 'restaurant_about_us'),
+            restaurant_logo: _.get(restaurant, 'restaurant_logo', ''),
+            restaurant_name: _.get(restaurant, 'restaurant_name', ''),
+            type: _.get(restaurant, 'type', ''),
+            tags: _.get(restaurant, 'tags', []).join(''),
+        };
+    });
 };
 
 

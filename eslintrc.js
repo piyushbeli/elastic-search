@@ -66,5 +66,6 @@ module.exports = {
         "no-duplicate-imports": "error",
         "no-irregular-whitespace": "error",
 	    "no-mixed-spaces-and-tabs": "off",
+	    "no-constant-condition": "off",
     },
 };
