@@ -1,39 +1,29 @@
-import ElasticSearch from '../services/elasticSearchService';
-import { Client } from '@elastic/elasticsearch';
 import Logger from '../logger';
 import { IRestaurantESDoc } from '../types/restaurant';
 import { ES_INDEXES, ES_TYPES } from '../utils/constants';
 import _ from 'lodash';
-import { ILoggerTypes } from 'types/logger';
+import getESClient from '../services/elasticSearchService';
 
-export default class ESHelper {
-	private logger : ILoggerTypes;
-	private esClient:Client;
+const logger = Logger.getInstance().getLogger();
 
-	constructor() {
-	    this.esClient = ElasticSearch.getInstance().getClient();
-	    this.logger = Logger.getInstance().getLogger();
-	}
-
-	public async bulkUpsertRestaurantsToES(esRestaurantDocs:IRestaurantESDoc[]):Promise<{type:string, message:string}> {
-	    if (!esRestaurantDocs.length) {
-		  return { type: 'error', message: 'Empty Restaurant Docs. Can\'t  move forward' };
-	    }
-	    // eslint-disable-next-line
-	    const restaurants = _.flatMap(esRestaurantDocs,(value,i)=>{
-		  return [{ index: { _index: ES_INDEXES.RESTAURANT, _id: value.objectId, _type: ES_TYPES.DOC }}, value];
-	    });
-	    try {
-		  const result = await this.esClient.bulk({ refresh: true, body: restaurants });
-		  if (result.statusCode === 200) {
-			  return { type: 'success', message: `Successfully uploaded ${esRestaurantDocs.length} items in bulk` };
-		  } else {
-			  this.logger.error(JSON.stringify(result.body));
-			  throw 'Some error occured';
-		  }
-	    } catch (e) {
-		 	this.logger.error(e);
-		    return { type: 'error', message: `Some error occurred. ${e}` };
-	    }
-	}
-}
+export const bulkUpsertRestaurantsToES = async (esRestaurantDocs: IRestaurantESDoc[]): Promise<{ type: string; message: string }> => {
+    const esClient = getESClient();
+    if (esRestaurantDocs.length) {
+        const restaurants = _.flatMap(esRestaurantDocs, (value) => {
+            return [{ index: { _index: ES_INDEXES.RESTAURANT, _id: value.objectId, _type: ES_TYPES.DOC }}, value];
+        });
+        try {
+            const result = await esClient.bulk({ refresh: true, body: restaurants });
+            if (result.statusCode === 200) {
+                return { type: 'success', message: `Successfully uploaded ${esRestaurantDocs.length} restaurants to ES` };
+            } else {
+                throw result.body;
+            }
+        } catch (e) {
+            logger.error(e);
+            return { type: 'error', message: `Some error occurred. ${e}` };
+        }
+    } else {
+        return { type: 'success', message: 'No documents to upload' };
+    }
+};

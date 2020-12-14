@@ -47,7 +47,7 @@ module.exports = {
         "only-arrow-functions": 0,
         "keyword-spacing": ["error", { "before": true, "after": true }],
         "@typescript-eslint/explicit-function-return-type": 0,
-        "@typescript-eslint/no-explicit-any": 1,
+        "@typescript-eslint/no-explicit-any": 0,
         "@typescript-eslint/interface-name-prefix": 0,
         "@typescript-eslint/no-namespace": 0,
         "@typescript-eslint/no-use-before-define": 0,
@@ -66,5 +66,6 @@ module.exports = {
         "no-duplicate-imports": "error",
         "no-irregular-whitespace": "error",
 	    "no-mixed-spaces-and-tabs": "off",
+	    "no-constant-condition": "off",
     },
 };

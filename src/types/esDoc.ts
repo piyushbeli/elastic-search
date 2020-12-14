@@ -1,11 +1,11 @@
 export interface IESDoc<T> {
-	'index': string;
-	'type': string;
-	'id': string;
-	'body': T;
+    index: string;
+    type: string;
+    id: string;
+    body: T;
 }
 
 export interface ESMapProperty {
-	type: string;
-	index?: boolean;
+    type: string;
+    index?: boolean;
 }
