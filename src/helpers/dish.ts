@@ -6,7 +6,8 @@ import { ILoggerTypes } from '../types/logger';
 import { Request } from 'express';
 import moment from 'moment';
 import { IDishESDoc } from '../types/dish';
-import { DB_CLASSES } from '../utils/constants';
+import { DB_CLASSES, ES_INDEXES } from '../utils/constants';
+import { ESSyncStat } from 'types/esSyncStats';
 
 const logger: ILoggerTypes = Logger.getInstance().getLogger();
 
@@ -32,6 +33,7 @@ export const handleDishUpload = async (query): Promise<{ error: string; totalDis
     const pageSize = 200;
     let totalDocsFetched = 0;
     let error = '';
+    const syncStartTime = moment().toDate();
     while (true) {
         const esDishDocs: IDishESDoc[] = [];
         const results: IDishESDoc[] = await DbHelper.getDocs(pageNo, pageSize, query, DB_CLASSES.DISH);
@@ -47,7 +49,9 @@ export const handleDishUpload = async (query): Promise<{ error: string; totalDis
         }
         pageNo++;
     }
-    logger.info(`Total ${totalDocsFetched} uploaded.`);
+    logger.info(`Total ${totalDocsFetched} uploaded for dishes.`);
+    const syncEndTime = moment().toDate();
+    await updateESSyncStat(syncStartTime, syncEndTime, error);
     return {
         error,
         totalDishes: totalDocsFetched,
@@ -65,4 +69,21 @@ const getSanitizedDishes = (dishes: unknown[]): IDishESDoc[] => {
             sourceImageURL: _.get(dish, 'sourceImageURL', ''),
         };
     });
+};
+
+const updateESSyncStat = async (syncStartTime: Date, syncEndTime: Date, error: string): Promise<void> => {
+    const esSyncStatForDish: ESSyncStat = {
+        indexType: ES_INDEXES.DISH,
+        syncStats: {
+            error: error,
+            lastSyncEndTime: syncEndTime,
+            lastSyncStartTime: syncStartTime,
+        },
+    };
+    try {
+        await DbHelper.updateESSyncStat(esSyncStatForDish);
+        logger.info(`Updated ES Stats For Dishes.`);
+    } catch (e) {
+        logger.error(`Error occurred while Updating ES Stats For Dishes, error is ${e}`);
+    }
 };

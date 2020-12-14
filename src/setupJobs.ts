@@ -1,5 +1,9 @@
-import RestaurantUploadJob from './jobs/uploadRestaurants';
+import setupRestaurantJob from './jobs/uploadRestaurants';
+import setupDishesJob from './jobs/uploadDishes';
 
-export default async function setupJobs():Promise<void> {
-    new RestaurantUploadJob().setup();
-}
+const setupJobs = async (): Promise<void> => {
+    setupRestaurantJob();
+    setupDishesJob();
+};
+
+export default setupJobs;
