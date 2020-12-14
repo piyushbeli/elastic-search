@@ -5,10 +5,10 @@ import { ILoggerTypes } from 'types/logger';
 import _ from 'lodash';
 import { getRestaurantIndexMappings } from '../utils/utils';
 
-let client:Client;
+let client: Client;
 const logger: ILoggerTypes = Logger.getInstance().getLogger();
 
-export const initElasticSearchClient = async ():Promise<Client> => {
+export const initElasticSearchClient = async (): Promise<Client> => {
     if (!client) {
         const nodeUrl = process.env.ELASTIC_SEARCH_URL || 'http://localhost:9200';
         client = new Client({ node: nodeUrl });
@@ -18,7 +18,7 @@ export const initElasticSearchClient = async ():Promise<Client> => {
     return client;
 };
 
-const checkConnection = async ():Promise<void> =>{
+const checkConnection = async (): Promise<void> => {
     if (!client) {
         throw new Error('Elastic search client has not been initialized yet');
     }
@@ -35,13 +35,13 @@ const checkConnection = async ():Promise<void> =>{
     }
 };
 
-const createIndicesAndMappings = async () : Promise<void> => {
+const createIndicesAndMappings = async (): Promise<void> => {
     if (!client) {
         throw new Error('Elastic search client has not been initialized yet');
     }
     _.forOwn(ES_INDEXES, async function (value, key) {
         try {
-            const result= await client.indices.exists({ index: value });
+            const result = await client.indices.exists({ index: value });
             if (!result.body) {
                 const indexCreateResult = await client.indices.create({ index: value });
                 if (indexCreateResult.statusCode === 200) {
@@ -68,9 +68,6 @@ const createIndicesAndMappings = async () : Promise<void> => {
     });
 };
 // TODO: throw error here if client is undefined
-const getESClient = ():Client => client;
+const getESClient = (): Client => client;
 
 export default getESClient;
-
-
-

@@ -3,7 +3,7 @@ import { DB_CLASSES } from '../utils/constants';
 import { ESSyncStat } from '../types/esSyncStats';
 import getMongoDbClient from '../services/mongodbService';
 
-export const getRestaurants = async (pageNo:number, pageSize:number, query = {}) : Promise<any[]>=>{
+export const getRestaurants = async (pageNo: number, pageSize: number, query = {}): Promise<any[]> => {
     const client = getMongoDbClient();
     const results = await client
         .db(_.get(client, 's.options.dbName'))
@@ -15,7 +15,7 @@ export const getRestaurants = async (pageNo:number, pageSize:number, query = {})
     return results!;
 };
 
-export const  updateESSyncStat = async (data:ESSyncStat): Promise<boolean> => {
+export const updateESSyncStat = async (data: ESSyncStat): Promise<boolean> => {
     const indexType = data.indexType;
     const syncStats = data.syncStats;
     const client = getMongoDbClient();
@@ -26,7 +26,7 @@ export const  updateESSyncStat = async (data:ESSyncStat): Promise<boolean> => {
     return result.ok === 1;
 };
 
-export const getESSyncStat = async (indexType : string): Promise<any> =>{
+export const getESSyncStat = async (indexType: string): Promise<any> => {
     const client = getMongoDbClient();
     const result = await client
         .db(_.get(client, 's.options.dbName'))

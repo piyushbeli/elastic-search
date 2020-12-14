@@ -2,22 +2,22 @@ import _ from 'lodash';
 import { IRestaurantESDoc } from '../types/restaurant';
 import Logger from '../logger';
 import * as DbHelper from './db';
-import * as  ESHelper from './es';
+import * as ESHelper from './es';
 import { ILoggerTypes } from '../types/logger';
 import { Request } from 'express';
 import moment from 'moment';
 
 const logger: ILoggerTypes = Logger.getInstance().getLogger();
 
-export const uploadAllRestaurantsToES = async(req:Request) : Promise<string> => {
-// TODO: takes date time or last N days and makes a query and then send to db
+export const uploadAllRestaurantsToES = async (req: Request): Promise<string> => {
+    // TODO: takes date time or last N days and makes a query and then send to db
     const { startDate: queryStartDate, endDate: queryEndDate } = req.query;
-    const startDate:string|undefined = _.isString(queryStartDate) ? queryStartDate: undefined;
-    const endDate:string|undefined = _.isString(queryEndDate) ? queryEndDate: undefined;
+    const startDate: string | undefined = _.isString(queryStartDate) ? queryStartDate : undefined;
+    const endDate: string | undefined = _.isString(queryEndDate) ? queryEndDate : undefined;
     const query = {};
     if (startDate || endDate) {
         const startDateCondition = startDate ? { $gte: moment(startDate).toDate() } : {};
-        const endDateCondition = endDate ? { $lte: moment(endDate).toDate() }:{};
+        const endDateCondition = endDate ? { $lte: moment(endDate).toDate() } : {};
         query['_updated_at'] = {
             ...startDateCondition,
             ...endDateCondition,
@@ -27,13 +27,13 @@ export const uploadAllRestaurantsToES = async(req:Request) : Promise<string> => 
     return 'Restaurant upload started.';
 };
 
-export const handleRestaurantUpload = async (query): Promise<{error: string; totalRestaurants: number;}> => {
+export const handleRestaurantUpload = async (query): Promise<{ error: string; totalRestaurants: number }> => {
     let pageNo = 0;
     const pageSize = 50;
     let totalDocsFetched = 0;
     let error = '';
     while (true) {
-        const esRestaurantDocs:IRestaurantESDoc[] = [];
+        const esRestaurantDocs: IRestaurantESDoc[] = [];
         const results: IRestaurantESDoc[] = await DbHelper.getRestaurants(pageNo, pageSize, query);
         esRestaurantDocs.push(...getSanitizedRestaurants(results));
         const result = await ESHelper.bulkUpsertRestaurantsToES(esRestaurantDocs);
@@ -54,7 +54,7 @@ export const handleRestaurantUpload = async (query): Promise<{error: string; tot
     };
 };
 
-const getSanitizedRestaurants = (restaurants : unknown[]) : IRestaurantESDoc[] => {
+const getSanitizedRestaurants = (restaurants: unknown[]): IRestaurantESDoc[] => {
     return restaurants.map((restaurant) => {
         return {
             contact_address: _.get(restaurant, 'contact_address', ''),
@@ -68,12 +68,3 @@ const getSanitizedRestaurants = (restaurants : unknown[]) : IRestaurantESDoc[] =
         };
     });
 };
-
-
-
-
-
-
-
-
-

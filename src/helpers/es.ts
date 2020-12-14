@@ -6,10 +6,10 @@ import getESClient from '../services/elasticSearchService';
 
 const logger = Logger.getInstance().getLogger();
 
-export const bulkUpsertRestaurantsToES = async(esRestaurantDocs: IRestaurantESDoc[]): Promise<{type:string, message:string}> => {
+export const bulkUpsertRestaurantsToES = async (esRestaurantDocs: IRestaurantESDoc[]): Promise<{ type: string; message: string }> => {
     const esClient = getESClient();
     if (esRestaurantDocs.length) {
-        const restaurants = _.flatMap(esRestaurantDocs, (value)=>{
+        const restaurants = _.flatMap(esRestaurantDocs, (value) => {
             return [{ index: { _index: ES_INDEXES.RESTAURANT, _id: value.objectId, _type: ES_TYPES.DOC }}, value];
         });
         try {
@@ -24,6 +24,6 @@ export const bulkUpsertRestaurantsToES = async(esRestaurantDocs: IRestaurantESDo
             return { type: 'error', message: `Some error occurred. ${e}` };
         }
     } else {
-        return { type: 'success', message: 'No documents to upload'};
+        return { type: 'success', message: 'No documents to upload' };
     }
 };

@@ -16,5 +16,5 @@ export const initMongoDBClient = async (): Promise<MongoClient> => {
     }
 };
 // TODO: throw error here if client is undefined
-const getMongoDbClient = ():MongoClient => mongoDbClient;
+const getMongoDbClient = (): MongoClient => mongoDbClient;
 export default getMongoDbClient;
