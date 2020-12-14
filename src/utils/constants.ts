@@ -1,5 +1,6 @@
 export const ES_INDEXES = {
     RESTAURANT: 'restaurant',
+    DISH: 'dish',
 };
 
 export const ES_TYPES = {

@@ -56,7 +56,7 @@ export default class RestaurantUploadJob {
     }
 
     public async setup(): Promise<void> {
-        const jobTime = '0 */1 * * * * ';
+        const jobTime = '0 11 * * * * ';
         this.logger.info(`${JOB_NAME}: Job is scheduled at: ${jobTime}. Current time is: ${moment().toLocaleString()}`);
         const job = new CronJob(jobTime, this.start.bind(this), null, true, DEFAULT_TIME_ZONE);
         job.start();

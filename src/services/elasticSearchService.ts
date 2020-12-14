@@ -3,7 +3,7 @@ import Logger from '../logger';
 import { ES_INDEXES } from '../utils/constants';
 import { ILoggerTypes } from 'types/logger';
 import _ from 'lodash';
-import { getRestaurantIndexMappings } from '../utils/utils';
+import { getMappings } from '../utils/utils';
 
 let client: Client;
 const logger: ILoggerTypes = Logger.getInstance().getLogger();
@@ -52,7 +52,7 @@ const createIndicesAndMappings = async (): Promise<void> => {
                 const mappingCreateResult = await client.indices.putMapping({
                     index: value,
                     body: {
-                        properties: getRestaurantIndexMappings(),
+                        properties: getMappings(value),
                     },
                 });
                 if (mappingCreateResult.statusCode === 200) {

@@ -6,6 +6,7 @@ import * as ESHelper from './es';
 import { ILoggerTypes } from '../types/logger';
 import { Request } from 'express';
 import moment from 'moment';
+import { DB_CLASSES } from '../utils/constants';
 
 const logger: ILoggerTypes = Logger.getInstance().getLogger();
 
@@ -34,7 +35,7 @@ export const handleRestaurantUpload = async (query): Promise<{ error: string; to
     let error = '';
     while (true) {
         const esRestaurantDocs: IRestaurantESDoc[] = [];
-        const results: IRestaurantESDoc[] = await DbHelper.getRestaurants(pageNo, pageSize, query);
+        const results: IRestaurantESDoc[] = await DbHelper.getDocs(pageNo, pageSize, query, DB_CLASSES.RESTAURANT);
         esRestaurantDocs.push(...getSanitizedRestaurants(results));
         const result = await ESHelper.bulkUpsertRestaurantsToES(esRestaurantDocs);
         if (result.type === 'error') {

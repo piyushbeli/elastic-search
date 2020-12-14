@@ -3,11 +3,11 @@ import { DB_CLASSES } from '../utils/constants';
 import { ESSyncStat } from '../types/esSyncStats';
 import getMongoDbClient from '../services/mongodbService';
 
-export const getRestaurants = async (pageNo: number, pageSize: number, query = {}): Promise<any[]> => {
+export const getDocs = async (pageNo: number, pageSize: number, query = {}, className: string): Promise<any[]> => {
     const client = getMongoDbClient();
     const results = await client
         .db(_.get(client, 's.options.dbName'))
-        .collection(DB_CLASSES.RESTAURANT)
+        .collection(className)
         .find(query)
         .skip(pageSize * pageNo)
         .limit(pageSize)
@@ -28,9 +28,6 @@ export const updateESSyncStat = async (data: ESSyncStat): Promise<boolean> => {
 
 export const getESSyncStat = async (indexType: string): Promise<any> => {
     const client = getMongoDbClient();
-    const result = await client
-        .db(_.get(client, 's.options.dbName'))
-        .collection(DB_CLASSES.ES_SYNC_STAT)
-        .findOne({ indexType: indexType });
+    const result = await client.db(_.get(client, 's.options.dbName')).collection(DB_CLASSES.ES_SYNC_STAT).findOne({ indexType: indexType });
     return result;
 };
