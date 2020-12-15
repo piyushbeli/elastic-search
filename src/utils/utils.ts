@@ -19,11 +19,15 @@ function getRestaurantIndexMappings(): { [key in keyof IRestaurantESDoc]: ESMapP
         restaurant_name: {
             type: 'text',
         },
-        contact_address: {
-            type: 'text',
-        },
         restaurant_about_us: {
             type: 'text',
+        },
+        tags: {
+            type: 'text',
+        },
+        contact_address: {
+            type: 'text',
+            index: false,
         },
         objectId: {
             type: 'text',
@@ -32,12 +36,6 @@ function getRestaurantIndexMappings(): { [key in keyof IRestaurantESDoc]: ESMapP
         image: {
             type: 'text',
             index: false,
-        },
-        type: {
-            type: 'text',
-        },
-        tags: {
-            type: 'text',
         },
         restaurant_logo: {
             type: 'text',
@@ -52,18 +50,13 @@ function getDishIndexMappings(): { [key in keyof IDishESDoc]: ESMapProperty } {
         name: {
             type: 'text',
         },
-        category: {
+        tags: {
             type: 'text',
         },
         description: {
             type: 'text',
-            index: false,
         },
         objectId: {
-            type: 'text',
-            index: false,
-        },
-        price: {
             type: 'text',
             index: false,
         },

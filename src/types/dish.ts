@@ -3,6 +3,5 @@ export interface IDishESDoc {
     description: string;
     sourceImageURL: string;
     objectId: string;
-    price: string;
-    category: string;
+    tags: string;
 }

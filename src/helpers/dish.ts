@@ -59,13 +59,12 @@ export const handleDishUpload = async (query): Promise<{ error: string; totalDis
 };
 
 const getSanitizedDishes = (dishes: unknown[]): IDishESDoc[] => {
-    return dishes.map((dish) => {
+    return dishes.map((dish): IDishESDoc => {
         return {
             objectId: _.get(dish, '_id'),
-            category: _.get(dish, 'category', ''),
+            tags: _.get(dish, 'tags', ''),
             description: _.get(dish, 'description', ''),
             name: _.get(dish, 'name'),
-            price: _.get(dish, 'price'),
             sourceImageURL: _.get(dish, 'sourceImageURL', ''),
         };
     });

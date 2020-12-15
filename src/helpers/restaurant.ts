@@ -60,15 +60,15 @@ export const handleRestaurantUpload = async (query): Promise<{ error: string; to
 };
 
 const getSanitizedRestaurants = (restaurants: unknown[]): IRestaurantESDoc[] => {
-    return restaurants.map((restaurant) => {
+    return restaurants.map((restaurant): IRestaurantESDoc => {
+        const restaurantName: string = _.get(restaurant, 'restaurant_name') || _.get(restaurant, 'name', '');
         return {
             contact_address: _.get(restaurant, 'contact_address', ''),
             image: _.get(restaurant, 'image', ''),
             objectId: _.get(restaurant, '_id'),
             restaurant_about_us: _.get(restaurant, 'restaurant_about_us'),
             restaurant_logo: _.get(restaurant, 'restaurant_logo', ''),
-            restaurant_name: _.get(restaurant, 'restaurant_name', ''),
-            type: _.get(restaurant, 'type', ''),
+            restaurant_name: restaurantName,
             tags: _.get(restaurant, 'tags', []).join(''),
         };
     });
