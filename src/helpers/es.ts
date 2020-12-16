@@ -59,11 +59,24 @@ export const searchAllIndices = async (req: Request): Promise<{ results: number;
         index: '*', // search in all the indices
         body: {
             query: {
-                multi_match: {
-                    // match all the indexable fields
-                    query: searchTerm,
-                    fuzziness: 1, // can be 0, 1, 2 or AUTO. These are values for edit distance
-                    fields: [...DISH_BOOSTED_FIELDS, ...RESTAURANT_BOOSTED_FIELDS],
+                bool: {
+                    should: [
+                        {
+                            multi_match: {
+                                // match all the indexable fields
+                                query: searchTerm,
+                                fields: [...DISH_BOOSTED_FIELDS, ...RESTAURANT_BOOSTED_FIELDS],
+                            },
+                        },
+                        {
+                            multi_match: {
+                                // match all the indexable fields
+                                query: searchTerm,
+                                fuzziness: 'AUTO', // can be 0, 1, 2 or AUTO. These are values for edit distance
+                                fields: [...DISH_BOOSTED_FIELDS, ...RESTAURANT_BOOSTED_FIELDS],
+                            },
+                        },
+                    ],
                 },
             },
         },
@@ -99,10 +112,22 @@ const searchIndices = async (
         index: indexType,
         body: {
             query: {
-                multi_match: {
-                    query: searchTerm,
-                    fuzziness: 'AUTO',
-                    ...fields,
+                bool: {
+                    should: [
+                        {
+                            multi_match: {
+                                query: searchTerm,
+                                ...fields,
+                            },
+                        },
+                        {
+                            multi_match: {
+                                query: searchTerm,
+                                fuzziness: 'AUTO',
+                                ...fields,
+                            },
+                        },
+                    ],
                 },
             },
         },
