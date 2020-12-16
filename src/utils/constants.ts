@@ -14,3 +14,6 @@ export const DB_CLASSES = {
 };
 
 export const DEFAULT_TIME_ZONE = 'America/Puerto_Rico';
+
+export const DISH_BOOSTED_FIELDS = ['name^3', 'tags^2', 'description'];
+export const RESTAURANT_BOOSTED_FIELDS = ['restaurant_name^3', 'tags^2', 'restaurant_about_us'];

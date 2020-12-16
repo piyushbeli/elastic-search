@@ -1,6 +1,6 @@
 import Logger from '../logger';
 import { IRestaurantESDoc } from '../types/restaurant';
-import { ES_INDEXES, ES_TYPES } from '../utils/constants';
+import { DISH_BOOSTED_FIELDS, ES_INDEXES, ES_TYPES, RESTAURANT_BOOSTED_FIELDS } from '../utils/constants';
 import _ from 'lodash';
 import getESClient from '../services/elasticSearchService';
 import { Request } from 'express';
@@ -52,16 +52,6 @@ export const bulkUpsertDishesToES = async (esDishDocs: IDishESDoc[]): Promise<{ 
     }
 };
 
-export const searchDishes = async (req: Request): Promise<{ results: number; values: any[] }> => {
-    const { from = 0, size = 10, searchTerm = '' } = req.body;
-    return await searchIndices(from, size, ES_INDEXES.DISH, searchTerm);
-};
-
-export const searchRestaurants = async (req: Request): Promise<{ results: number; values: any[] }> => {
-    const { from = 0, size = 10, searchTerm = '' } = req.body;
-    return await searchIndices(from, size, ES_INDEXES.RESTAURANT, searchTerm);
-};
-
 export const searchAllIndices = async (req: Request): Promise<{ results: number; values: any[] }> => {
     const esClient = getESClient();
     const { from = 0, size = 10, searchTerm = '' } = req.body;
@@ -72,7 +62,8 @@ export const searchAllIndices = async (req: Request): Promise<{ results: number;
                 multi_match: {
                     // match all the indexable fields
                     query: searchTerm,
-                    fuzziness: 'AUTO', // can be 0,1 or 2. These are values for edit distance
+                    fuzziness: 1, // can be 0, 1, 2 or AUTO. These are values for edit distance
+                    fields: [...DISH_BOOSTED_FIELDS, ...RESTAURANT_BOOSTED_FIELDS],
                 },
             },
         },
@@ -85,7 +76,24 @@ export const searchAllIndices = async (req: Request): Promise<{ results: number;
     return { results, values };
 };
 
-const searchIndices = async (from: number, size: number, indexType: string, searchTerm: string): Promise<{ results: number; values: any[] }> => {
+export const searchDishes = async (req: Request): Promise<{ results: number; values: any[] }> => {
+    const { from = 0, size = 10, searchTerm = '' } = req.body;
+    return await searchIndices(from, size, ES_INDEXES.DISH, searchTerm, DISH_BOOSTED_FIELDS);
+};
+
+export const searchRestaurants = async (req: Request): Promise<{ results: number; values: any[] }> => {
+    const { from = 0, size = 10, searchTerm = '' } = req.body;
+    return await searchIndices(from, size, ES_INDEXES.RESTAURANT, searchTerm, RESTAURANT_BOOSTED_FIELDS);
+};
+
+const searchIndices = async (
+    from: number,
+    size: number,
+    indexType: string,
+    searchTerm: string,
+    boostedFields?: string[],
+): Promise<{ results: number; values: any[] }> => {
+    const fields = boostedFields ? { fields: boostedFields } : {};
     const esClient = getESClient();
     const result = await esClient.search({
         index: indexType,
@@ -94,6 +102,7 @@ const searchIndices = async (from: number, size: number, indexType: string, sear
                 multi_match: {
                     query: searchTerm,
                     fuzziness: 'AUTO',
+                    ...fields,
                 },
             },
         },
