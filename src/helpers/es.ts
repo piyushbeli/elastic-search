@@ -5,6 +5,7 @@ import _ from 'lodash';
 import getESClient from '../services/elasticSearchService';
 import { Request } from 'express';
 import { IDishESDoc } from '../types/dish';
+import { formatSearchItem, getRequiredFieldsForSearchAllQuery } from '../utils/utils';
 
 const logger = Logger.getInstance().getLogger();
 
@@ -52,9 +53,10 @@ export const bulkUpsertDishesToES = async (esDishDocs: IDishESDoc[]): Promise<{ 
     }
 };
 
-export const searchAllIndices = async (req: Request): Promise<{ results: number; values: any[] }> => {
+export const searchAllIndices = async (req: Request): Promise<{ results?: number; values: any[] }> => {
     const esClient = getESClient();
     const { from = 0, size = 10, searchTerm = '' } = req.body;
+    const showRawData = !!req.query['raw'];
     const result = await esClient.search({
         index: '*', // search in all the indices
         body: {
@@ -63,17 +65,17 @@ export const searchAllIndices = async (req: Request): Promise<{ results: number;
                     should: [
                         {
                             multi_match: {
-                                // match all the indexable fields
                                 query: searchTerm,
-                                fields: [...DISH_BOOSTED_FIELDS, ...RESTAURANT_BOOSTED_FIELDS],
+                                fields: getRequiredFieldsForSearchAllQuery().nGramField,
+                                type: 'bool_prefix',
+                                boost: 5,
                             },
                         },
                         {
                             multi_match: {
-                                // match all the indexable fields
                                 query: searchTerm,
-                                fuzziness: 'AUTO', // can be 0, 1, 2 or AUTO. These are values for edit distance
-                                fields: [...DISH_BOOSTED_FIELDS, ...RESTAURANT_BOOSTED_FIELDS],
+                                fuzziness: 'AUTO',
+                                fields: getRequiredFieldsForSearchAllQuery().basicFields,
                             },
                         },
                     ],
@@ -86,6 +88,9 @@ export const searchAllIndices = async (req: Request): Promise<{ results: number;
     const responseHits: any[] = _.get(result.body, 'hits', []);
     const results: number = _.get(responseHits, 'total.value', 0);
     const values: any[] = _.get(responseHits, 'hits', []);
+    if (!showRawData) {
+        return { values: values.map((value) => formatSearchItem(value)) };
+    }
     return { results, values };
 };
 

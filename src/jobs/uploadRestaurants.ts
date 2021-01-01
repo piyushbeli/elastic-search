@@ -6,7 +6,7 @@ import { DEFAULT_TIME_ZONE, ES_INDEXES } from '../utils/constants';
 import { ESSyncStat } from '../types/esSyncStats';
 import * as RestaurantHelper from '../helpers/restaurant';
 import * as DbHelper from '../helpers/db';
-import { ILoggerTypes } from 'types/logger';
+import { ILoggerTypes } from '../types/logger';
 
 const JOB_NAME = 'uploadRestaurants';
 const logger: ILoggerTypes = Logger.getInstance().getLogger();

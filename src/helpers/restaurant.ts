@@ -7,7 +7,7 @@ import { ILoggerTypes } from '../types/logger';
 import { Request } from 'express';
 import moment from 'moment';
 import { DB_CLASSES, ES_INDEXES } from '../utils/constants';
-import { ESSyncStat } from 'types/esSyncStats';
+import { ESSyncStat } from '../types/esSyncStats';
 
 const logger: ILoggerTypes = Logger.getInstance().getLogger();
 

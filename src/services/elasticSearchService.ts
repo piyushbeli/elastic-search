@@ -1,7 +1,7 @@
 import { Client } from '@elastic/elasticsearch';
 import Logger from '../logger';
 import { ES_INDEXES } from '../utils/constants';
-import { ILoggerTypes } from 'types/logger';
+import { ILoggerTypes } from '../types/logger';
 import _ from 'lodash';
 import { getMappings } from '../utils/utils';
 
