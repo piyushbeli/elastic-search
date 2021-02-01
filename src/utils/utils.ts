@@ -1,6 +1,6 @@
 import { ESMapProperty } from '../types/esDoc';
 import { IRestaurantESDoc } from '../types/restaurant';
-import { ES_INDEXES } from './constants';
+import { DB_CLASSES, ES_INDEXES } from './constants';
 import { IDishESDoc } from '../types/dish';
 import _ from 'lodash';
 import { ISearchResult } from '../types/search';
@@ -46,7 +46,11 @@ function getRestaurantIndexMappings(): { [key in keyof IRestaurantESDoc]: ESMapP
     };
     return restaurantMappings;
 }
-
+// a keyword type is not broken and helps in exact matching
+// a text type is broken and can be used for partial matching
+// by using keyword type we can implement filtering
+// also only indexed fields can be searched and filtered
+// https://discuss.elastic.co/t/filter-query-gives-empty-result/75140
 function getDishIndexMappings(): { [key in keyof IDishESDoc]: ESMapProperty } {
     const dishMappings: { [key in keyof IDishESDoc]: ESMapProperty } = {
         name: {
@@ -66,6 +70,12 @@ function getDishIndexMappings(): { [key in keyof IDishESDoc]: ESMapProperty } {
             type: 'text',
             index: false,
         },
+        restaurantId: {
+            type: 'keyword',
+        },
+        restaurantName: {
+            type: 'keyword',
+        },
     };
     return dishMappings;
 }
@@ -82,7 +92,7 @@ export const getRequiredFieldsForSearchAllQuery = (): { nGramField: string[]; ba
     return { nGramField: result, basicFields: requiredFields };
 };
 
-export const formatSearchItem = (value): ISearchResult => {
+export const formatSearchItem = (value: Record<string, any>): ISearchResult => {
     const index = value._index;
     const item = value._source;
     switch (index) {
@@ -92,6 +102,8 @@ export const formatSearchItem = (value): ISearchResult => {
             categoryName: 'Dish',
             name: _.get(item, 'name', ''),
             imageName: _.get(item, 'sourceImageURL', ''),
+            restaurantId: _.get(item, 'restaurantId', ''),
+            restaurantName: _.get(item, 'restaurantName', ''),
         };
     case ES_INDEXES.RESTAURANT:
         return {
@@ -108,4 +120,28 @@ export const formatSearchItem = (value): ISearchResult => {
             name: '',
         };
     }
+};
+
+export const getDishAggregationPipeline = (matchQuery = {}): any[] => {
+    return [
+        {
+            $addFields: {
+                restaurantId: { $substr: ['$_p_restaurant', DB_CLASSES.RESTAURANT.length + 1, -1] },
+            },
+        },
+        { $match: { ...matchQuery }},
+        {
+            $lookup: {
+                from: 'Restaurant',
+                localField: 'restaurantId',
+                foreignField: '_id',
+                as: 'restaurants',
+            },
+        },
+        {
+            $addFields: {
+                restaurantName: { $arrayElemAt: ['$restaurants.restaurant_name', 0] },
+            },
+        },
+    ];
 };

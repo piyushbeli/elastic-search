@@ -6,6 +6,7 @@ import getESClient from '../services/elasticSearchService';
 import { Request } from 'express';
 import { IDishESDoc } from '../types/dish';
 import { formatSearchItem, getRequiredFieldsForSearchAllQuery } from '../utils/utils';
+import { ISearchIndicesParams } from '../types/search';
 
 const logger = Logger.getInstance().getLogger();
 
@@ -94,31 +95,63 @@ export const searchAllIndices = async (req: Request): Promise<{ results?: number
     return { results, values };
 };
 
-export const searchDishes = async (req: Request): Promise<{ results: number; values: any[] }> => {
-    const { from = 0, size = 10, searchTerm = '' } = req.body;
-    return await searchIndices(from, size, ES_INDEXES.DISH, searchTerm, DISH_BOOSTED_FIELDS);
+export const searchDishes = async (req: Request): Promise<{ results?: number; values: any[] }> => {
+    const { from = 0, size = 10, searchTerm = '', filter = {}} = req.body;
+    const showRawData = !!req.query['raw'];
+    const { restaurantId = null, restaurantName = null } = filter;
+    // filetr can be of type term and range
+    // {term :{string:value,string:value}}
+    // {range:{string:{gte:date_time}}}
+    const filters: Record<string, any>[] = [];
+    if (restaurantId) {
+        filters.push({ term: { restaurantId }});
+    }
+    if (restaurantName) {
+        filters.push({ term: { restaurantName }});
+    }
+    const searchParams: ISearchIndicesParams = {
+        from,
+        size,
+        indexType: ES_INDEXES.DISH,
+        searchTerm,
+        boostedFields: DISH_BOOSTED_FIELDS,
+        filters,
+        showRawData,
+    };
+    return await searchIndices(searchParams);
 };
 
-export const searchRestaurants = async (req: Request): Promise<{ results: number; values: any[] }> => {
+export const searchRestaurants = async (req: Request): Promise<{ results?: number; values: any[] }> => {
     const { from = 0, size = 10, searchTerm = '' } = req.body;
-    return await searchIndices(from, size, ES_INDEXES.RESTAURANT, searchTerm, RESTAURANT_BOOSTED_FIELDS);
+    const showRawData = !!req.query['raw'];
+    const searchParams: ISearchIndicesParams = {
+        from,
+        size,
+        indexType: ES_INDEXES.RESTAURANT,
+        searchTerm,
+        boostedFields: RESTAURANT_BOOSTED_FIELDS,
+        filters: [],
+        showRawData,
+    };
+    return await searchIndices(searchParams);
 };
 
-const searchIndices = async (
-    from: number,
-    size: number,
-    indexType: string,
-    searchTerm: string,
-    boostedFields?: string[],
-): Promise<{ results: number; values: any[] }> => {
+const searchIndices = async (searchParams: ISearchIndicesParams): Promise<{ results?: number; values: any[] }> => {
+    const { from, size, indexType, searchTerm, boostedFields, filters, showRawData } = searchParams;
     const fields = boostedFields ? { fields: boostedFields } : {};
     const esClient = getESClient();
+    let filter: Record<string, any> = {};
+    if (!_.isEmpty(filters)) {
+        filter = { filter: filters };
+    }
+    // by using must clause with filter we can make filtering work
+    // as must enforces a condition whereas should just scores on best match
     const result = await esClient.search({
         index: indexType,
         body: {
             query: {
                 bool: {
-                    should: [
+                    must: [
                         {
                             multi_match: {
                                 query: searchTerm,
@@ -133,6 +166,7 @@ const searchIndices = async (
                             },
                         },
                     ],
+                    ...filter,
                 },
             },
         },
@@ -142,5 +176,8 @@ const searchIndices = async (
     const responseHits: any[] = _.get(result.body, 'hits', []);
     const results: number = _.get(responseHits, 'total.value', 0);
     const values: any[] = _.get(responseHits, 'hits', []);
+    if (!showRawData) {
+        return { values: values.map((value) => formatSearchItem(value)) };
+    }
     return { results, values };
 };

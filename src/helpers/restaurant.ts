@@ -29,7 +29,7 @@ export const uploadAllRestaurantsToES = async (req: Request): Promise<string> =>
     return 'Restaurant upload started.';
 };
 
-export const handleRestaurantUpload = async (query): Promise<{ error: string; totalRestaurants: number }> => {
+export const handleRestaurantUpload = async (query: Record<string, any>): Promise<{ error: string; totalRestaurants: number }> => {
     let pageNo = 0;
     const pageSize = 50;
     let totalDocsFetched = 0;

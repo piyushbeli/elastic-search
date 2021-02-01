@@ -8,4 +8,5 @@ export interface IESDoc<T> {
 export interface ESMapProperty {
     type: string;
     index?: boolean;
+    include_in_all?: boolean;
 }

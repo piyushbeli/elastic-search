@@ -4,4 +4,6 @@ export interface IDishESDoc {
     sourceImageURL: string;
     objectId: string;
     tags: string;
+    restaurantId: string;
+    restaurantName: string;
 }

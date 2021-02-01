@@ -8,6 +8,7 @@ import moment from 'moment';
 import { IDishESDoc } from '../types/dish';
 import { DB_CLASSES, ES_INDEXES } from '../utils/constants';
 import { ESSyncStat } from '../types/esSyncStats';
+import { getDishAggregationPipeline } from '../utils/utils';
 
 const logger: ILoggerTypes = Logger.getInstance().getLogger();
 
@@ -28,7 +29,7 @@ export const uploadAllDishesToES = async (req: Request): Promise<string> => {
     return 'Dish upload started.';
 };
 
-export const handleDishUpload = async (query): Promise<{ error: string; totalDishes: number }> => {
+export const handleDishUpload = async (query: Record<string, any>): Promise<{ error: string; totalDishes: number }> => {
     let pageNo = 0;
     const pageSize = 200;
     let totalDocsFetched = 0;
@@ -36,7 +37,8 @@ export const handleDishUpload = async (query): Promise<{ error: string; totalDis
     const syncStartTime = moment().toDate();
     while (true) {
         const esDishDocs: IDishESDoc[] = [];
-        const results: IDishESDoc[] = await DbHelper.getDocs(pageNo, pageSize, query, DB_CLASSES.DISH);
+        const dishAggregationPipeline:any[] = getDishAggregationPipeline(query);
+        const results: IDishESDoc[] = await DbHelper.getAggregatedDocs(pageNo, pageSize, DB_CLASSES.DISH, dishAggregationPipeline);
         esDishDocs.push(...getSanitizedDishes(results));
         const result = await ESHelper.bulkUpsertDishesToES(esDishDocs);
         if (result.type === 'error') {
@@ -66,6 +68,8 @@ const getSanitizedDishes = (dishes: unknown[]): IDishESDoc[] => {
             description: _.get(dish, 'description', ''),
             name: _.get(dish, 'name'),
             sourceImageURL: _.get(dish, 'sourceImageURL', ''),
+            restaurantId: _.get(dish, 'restaurantId'),
+            restaurantName: _.get(dish, 'restaurantName', ''),
         };
     });
 };

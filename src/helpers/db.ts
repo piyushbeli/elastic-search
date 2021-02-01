@@ -31,3 +31,15 @@ export const getESSyncStat = async (indexType: string): Promise<any> => {
     const result = await client.db(_.get(client, 's.options.dbName')).collection(DB_CLASSES.ES_SYNC_STAT).findOne({ indexType: indexType });
     return result;
 };
+
+export const getAggregatedDocs = async (pageNo: number, pageSize: number, className: string, aggregationPipeline: any[] = []): Promise<any[]> => {
+    const client = getMongoDbClient();
+    const results = await client
+        .db(_.get(client, 's.options.dbName'))
+        .collection(className)
+        .aggregate(aggregationPipeline)
+        .skip(pageSize * pageNo)
+        .limit(pageSize)
+        .toArray();
+    return results!;
+};
