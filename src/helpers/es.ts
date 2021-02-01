@@ -144,14 +144,15 @@ const searchIndices = async (searchParams: ISearchIndicesParams): Promise<{ resu
     if (!_.isEmpty(filters)) {
         filter = { filter: filters };
     }
-    // by using must clause with filter we can make filtering work
-    // as must enforces a condition whereas should just scores on best match
+    // min should match is for should clause so that we can define minimum cases for match
+    // previously while using must it was doing hard matching
+    const minShouldMatchQuery: Record<string, any> = _.isEmpty(filter) ? {} : { minimum_should_match: 1 };
     const result = await esClient.search({
         index: indexType,
         body: {
             query: {
                 bool: {
-                    must: [
+                    should: [
                         {
                             multi_match: {
                                 query: searchTerm,
@@ -167,6 +168,7 @@ const searchIndices = async (searchParams: ISearchIndicesParams): Promise<{ resu
                         },
                     ],
                     ...filter,
+                    ...minShouldMatchQuery,
                 },
             },
         },

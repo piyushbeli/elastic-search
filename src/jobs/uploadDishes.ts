@@ -35,7 +35,7 @@ const getLastSyncStartTime = (esSyncStats: ESSyncStat): Date | null => {
 };
 
 const setupDishesJob = async (): Promise<void> => {
-    const jobTime = '0 11 * * * * ';
+    const jobTime = '0 11 * * * ';
     logger.info(`${JOB_NAME}: Job is scheduled at: ${jobTime}. Current time is: ${moment().toLocaleString()}`);
     const job = new CronJob(jobTime, start, null, true, DEFAULT_TIME_ZONE);
     job.start();
