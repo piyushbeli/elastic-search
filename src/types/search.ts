@@ -5,14 +5,16 @@ export interface ISearchResult {
     imageName: string;
     restaurantName?: string;
     restaurantId?: string;
+    description?: string;
 }
 
-export interface ISearchIndicesParams {
+export interface ISearchQuery {
+    index: string;
+    body: Record<string, any>;
     from: number;
     size: number;
-    indexType: string;
-    searchTerm: string;
-    boostedFields?: string[];
-    filters?: Record<string, any>[];
+}
+export interface ISearchIndicesParams {
+    searchQuery: ISearchQuery;
     showRawData: boolean;
 }

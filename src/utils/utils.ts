@@ -80,9 +80,8 @@ function getDishIndexMappings(): { [key in keyof IDishESDoc]: ESMapProperty } {
     return dishMappings;
 }
 
-export const getRequiredFieldsForSearchAllQuery = (): { nGramField: string[]; basicFields: string[] } => {
+export const getRequiredFieldsForSearchAllQuery = (requiredFields = ['name', 'restaurant_name']): { nGramField: string[]; basicFields: string[] } => {
     const nGrams = ['', '._2gram', '._3gram'];
-    const requiredFields = ['name', 'restaurant_name'];
     const result: string[] = [];
     _.forEach(requiredFields, (field) => {
         _.forEach(nGrams, (gramValue) => {
@@ -104,6 +103,7 @@ export const formatSearchItem = (value: Record<string, any>): ISearchResult => {
             imageName: _.get(item, 'sourceImageURL', ''),
             restaurantId: _.get(item, 'restaurantId', ''),
             restaurantName: _.get(item, 'restaurantName', ''),
+            description: _.get(item, 'description'),
         };
     case ES_INDEXES.RESTAURANT:
         return {
